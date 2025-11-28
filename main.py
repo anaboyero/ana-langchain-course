@@ -23,10 +23,10 @@ def search(query: str ) -> str:
         The search results
     '''
     print(f"Searching for {query}...") 
-    return "Tokyo weather is snowing with -1 Celsius degrees."
+    return tavily.search(query=query)
     
-#llm = ChatOllama(model="gpt-oss:latest")
-llm = ChatOpenAI()
+llm = ChatOllama(model="gpt-oss:latest")
+#llm = ChatOpenAI()
 tools = [search] 
 agent = create_agent(model=llm, tools=tools)
 
