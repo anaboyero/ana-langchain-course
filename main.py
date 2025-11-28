@@ -9,31 +9,39 @@ from langchain.tools import tool
 from langchain_core.messages import HumanMessage 
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
+from langchain_tavily import TavilySearch
 from tavily import TavilyClient
 
-tavily = TavilyClient()
 
-@tool
-def search(query: str ) -> str: 
-    '''
-    Tool that searches over internet
-    Args:
-        query: the query to search for 
-    Return:
-        The search results
-    '''
-    print(f"Searching for {query}...") 
-    return tavily.search(query=query)
-    
-llm = ChatOllama(model="gpt-oss:latest")
-#llm = ChatOpenAI()
-tools = [search] 
-agent = create_agent(model=llm, tools=tools)
+class Source(BaseModel):
+    """Schema for a source used by the agent"""
+
+    url: str = Field(description="The URL of the source")
+
+class AgentResponse(BaseModel):
+    """Schema for agent response with answer and sources"""
+
+    answer: str = Field(description="Thr agent's answer to the query")
+    sources: List[Source] = Field(
+        default_factory=list, description="List of sources used to generate the answer"
+    )    
+
+#llm = ChatOllama(model="gpt-oss:latest")
+llm = ChatOpenAI(temperature=0.5)
+tools = [TavilySearch()] 
+agent = create_agent(model=llm, tools=tools, response_format=AgentResponse)
 
 def main():
-    print("Hello from search-agent!")
-    result = agent.invoke({"messages":HumanMessage(content="What is the weather in Tokyo")})
+    print("Hello from langchain-course!")
+    result = agent.invoke(
+        {
+            "messages": HumanMessage(
+                content="search for 3 job postings for an ai engineer using langchain in Madrid on linkedin and list their details?"
+            )
+        }
+    )
     print(result)
+
 
 if __name__ == "__main__":
     main()
